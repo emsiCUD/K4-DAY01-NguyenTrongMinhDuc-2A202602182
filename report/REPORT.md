@@ -4,7 +4,7 @@
 
 **Runtime Colab:** CPU
 
-**Python / PyTorch / Ultralytics: 8.4.145**
+**Python / PyTorch / Ultralytics:** 3.13.15 / 2.11.0+cpu / 8.4.145
 
 **Checkpoint:** `yolo11n-cls.pt`, `yolo11n.pt`, `yolo11n-seg.pt`
 
@@ -34,11 +34,11 @@ Nguồn evidence: `detection_predictions.json` và `visuals/detection_prediction
 * **Một record (`class_name`, `score`, `bbox_xyxy`, `bbox_width`, `bbox_height`):**
   `{"class_name": "person", "score": 0.912625, "bbox_xyxy": [385.33, 69.24, 498.92, 348.92], "bbox_width": 113.58, "bbox_height": 279.68}`.
 * **Diễn giải vị trí box bằng lời:**
-  Hộp giới hạn (bounding box) chứa vật thể "person" có góc trên cùng bên trái bắt đầu tại tọa độ x = 385.33, y = 69.24 pixel, và kéo dài đến góc dưới cùng bên phải tại tọa độ x = 498.92, y = 348.92 pixel^^. Kích thước của hộp có chiều rộng là 113.58 pixel và chiều cao là 279.68 pixel.
+  Hộp giới hạn (bounding box) chứa vật thể "person" có góc trên cùng bên trái bắt đầu tại tọa độ x = 385.33, y = 69.24 pixel, và kéo dài đến góc dưới cùng bên phải tại tọa độ x = 498.92, y = 348.92 pixel. Kích thước của hộp có chiều rộng là 113.58 pixel và chiều cao là 279.68 pixel.
 * **So sánh số prediction ở hai threshold:**
-  Khi hạ threshold (ngưỡng điểm số tin cậy), số lượng prediction sẽ tăng lên do mô hình giữ lại cả những dự đoán có độ tin cậy thấp. Ngược lại, nếu nâng threshold lên cao, các dự đoán điểm thấp sẽ bị loại bỏ, làm giảm tổng số prediction.
+  Chạy lại ô detection trên sample `kitchen` với ba ngưỡng: 0.20 → 17 vật thể; 0.35 → 11 vật thể; 0.60 → 6 vật thể. Hạ ngưỡng làm số prediction tăng vì mô hình giữ lại cả các dự đoán có score thấp; nâng ngưỡng loại bỏ chúng. Cụ thể, khi nâng từ 0.35 lên 0.60, hai `cup` (score 0.451 và 0.382) cùng ba `bowl` điểm thấp bị loại; khi hạ từ 0.35 xuống 0.20, xuất hiện thêm `potted plant`, `dining table`, `ba spoon` và một `bottle`.
 * **Điều gì thay đổi đối với độ bao phủ và khối lượng reviewer cần xem?**
-  Threshold thấp giúp độ bao phủ cao hơn (ít bỏ sót vật thể) nhưng lại tạo ra nhiều dự đoán sai (false positives/nhiễu rác). Điều này làm tăng khối lượng công việc của reviewer/QC vì họ phải tốn thời gian loại bỏ các box sai.
+  Ngưỡng cao (0.60) chỉ còn 6 box nên reviewer duyệt rất nhanh, nhưng độ bao phủ kém: hai cái `cup` trên bàn — nhìn rõ trong `visuals/detection_predictions.png` — bị mất hoàn toàn, annotator vẫn phải tự vẽ. Ngưỡng thấp (0.20) cho 17 box, reviewer phải xem gấp gần ba lần và tốn thời gian loại các box sai. Tuy nhiên không phải box thêm nào cũng là rác: `potted plant`, `dining table` và `spoon` vốn là vật thể có thật trong ảnh, và chính chúng cũng được `yolo11n-seg.pt` phát hiện ở ngưỡng 0.35 (`kitchen-004` potted plant 0.632, `kitchen-005` dining table 0.578, `kitchen-008` spoon 0.488). Điều này cho thấy ngưỡng mặc định 0.35 đang bỏ sót vật thể thật, nên không được coi prediction ở bất kỳ ngưỡng nào là ground truth — annotator vẫn phải rà toàn ảnh và bổ sung vật thể mô hình bỏ sót.
 * **Đề xuất một quy tắc box chặt:**
   Bounding box phải ôm sát nhất có thể vào các mép ngoài cùng nhìn thấy được của vật thể, không được chứa quá nhiều khoảng không gian nền (background) thừa thãi bên trong hộp.
 * **Với object bị che khuất/cắt mép, điều gì cần guideline hoặc escalation quyết định?**
